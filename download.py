@@ -9,18 +9,23 @@ from multiprocessing import Process
 def download(driver, Scode):
     time.sleep(1)
     # 输入股票代码，分两次输入才能使其弹出搜索结果
-    driver.find_element_by_xpath('//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[1]/input').clear()
-    driver.find_element_by_xpath('//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[1]/input').send_keys(Scode[0:3])
-    # time.sleep(1)
-    driver.find_element_by_xpath('//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[1]/input').send_keys(Scode[3:6])
+    driver.find_element(by=By.XPATH,
+                        value='//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[1]/input').clear()
+    driver.find_element(by=By.XPATH,
+                        value='//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[1]/input').send_keys(Scode[0:3])
+    time.sleep(0.1)
+    driver.find_element(by=By.XPATH,
+                        value='//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[1]/input').send_keys(Scode[3:6])
     time.sleep(1)
     # 如果弹出了搜索结果，点击弹出的结果，下载数据
     try:
-        driver.find_element_by_xpath('//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[1]/div').click()
+        driver.find_element(by=By.XPATH,
+                            value='//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[1]/div').click()
         time.sleep(1.5)
-        driver.find_element_by_xpath('//*[@id="marketXiazai"]').click()
+        driver.find_element(by=By.XPATH,
+                            value='//*[@id="marketXiazai"]').click()
         time.sleep(1)
-    except:
+    except RuntimeError:
         print(Scode + '不存在')
         return 0
 
@@ -60,32 +65,37 @@ def bug(Scode):
 
     pinlv = '每日'
 
+    # 修改主机的IP防止下载次数过多导致被拒绝访问
+    # options.add_argument("--proxy-server=http://112.6.117.178:8085")
+
     # 设置文件的下载路径
     options = webdriver.ChromeOptions()
-    # 修改主机的IP防止下载次数过多导致被拒绝访问
-    options.add_argument("--proxy-server=http://112.6.117.178:8085")
+
     prefs = {'profile.default_content_settings.popups': 0,
-             'download.default_directory': r'C:\Users\65487\Desktop\股票代码\股票代码\19\中小板\\'}
+             'download.default_directory': r'D:\code\JC_bug_computing\download'}
     options.add_experimental_option('prefs', prefs)
 
-    driver = webdriver.Chrome(r'D:\code\bug\chromedriver.exe', chrome_options=options)
+    driver = webdriver.Chrome(r'chromedriver.exe', chrome_options=options)
     driver.get('http://webapi.cninfo.com.cn/#/marketData')
 
     # 选择查询的开始时间与结束时间
-    driver.find_element_by_xpath('//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/input').click()
+    driver.find_element(by=By.XPATH,
+                        value='//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/input').click()
     time.sleep(1)
-    driver.find_element_by_xpath(
-        '//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/div/div[2]/input[1]').clear()
-    driver.find_element_by_xpath(
-        '//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/div/div[2]/input[2]').clear()
-    driver.find_element_by_xpath(
-        '//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/div/div[2]/input[1]').send_keys(start_time)
-    driver.find_element_by_xpath(
-        '//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/div/div[2]/input[2]').send_keys(end_time)
-    driver.find_element_by_xpath(
-        '//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/div/div[4]/button[1]').click()
+    driver.find_element(by=By.XPATH,
+                        value='//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/div/div[2]/input[1]').clear()
+    driver.find_element(by=By.XPATH,
+                        value='//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/div/div[2]/input[2]').clear()
+    driver.find_element(by=By.XPATH,
+                        value='//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/div/div[2]/input[1]').send_keys(start_time)
+    driver.find_element(by=By.XPATH,
+                        value='//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/div/div[2]/input[2]').send_keys(end_time)
+    driver.find_element(by=By.XPATH,
+                        value='//*[@id="root"]/div/div[3]/div/div/div[1]/div/div/div[2]/div/div/div[4]/button[1]').click()
 
-    select = Select(driver.find_element_by_id('seee1'))
+    select = Select(driver.find_element(by=By.ID, value='seee1'))
+
+    index = 0
     if pinlv == '每日':
         index = 0
     elif pinlv == '每周':
@@ -94,14 +104,14 @@ def bug(Scode):
         index = 2
     select.select_by_index(index)
 
-    time.sleep(30)
+    time.sleep(5)
 
     for code in Scode:
         download(driver, code)
 
 
 if __name__ == '__main__':
-    Scode, Coname = load_Scode(r'C:\Users\65487\Desktop\股票代码\股票代码\中小板.xlsx', 1)
+    Scode, Coname = load_Scode(r'shares_code.xlsx', 1)
     # bug(Scode)
     sp_dict = split(Scode, 10)
     print(sp_dict)
